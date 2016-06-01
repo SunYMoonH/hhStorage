@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<title></title>
+		<script src="js/mui.min.js"></script>
+		<link href="css/mui.min.css" rel="stylesheet" />
+		<script type="text/javascript" charset="utf-8">
+			mui.init();
+		</script>
+	</head>
+
+	<body>
+		<canvas id="canvas1" width="321" height="200"></canvas>
+		<button type="button" class="mui-btn mui-btn-blue" id="btn">相册</button>
+		<button type="button" class="mui-btn mui-btn-blue" id="effect">gray</button>
+		<button type="button" class="mui-btn mui-btn-blue" id="black">black</button>
+		<button type="button" class="mui-btn mui-btn-blue" id="reverse">reverse</button>
+		<button type="button" class="mui-btn mui-btn-blue" id="blur">blur</button>
+		<div id="gray">灰色
+		<div class="mui-input-row mui-input-range">
+			<label>red:</label>
+			<input class="redSlider" type="range" min="0" max="1" value="0.3" step="0.01">
+		</div>
+		<div class="mui-input-row mui-input-range">
+			<label>green:</label>
+			<input class="greenSlider" type="range" min="0" max="1" value="0.3" step="0.01">
+		</div>
+		<div class="mui-input-row mui-input-range">
+			<label>blue:</label>
+			<input class="blueSlider" type="range" min="0" max="1" value="0.3" step="0.01">
+		</div>
+		</div>
+		
+		<div id="Black">黑色
+		<div class="mui-input-row mui-input-range">
+			<label>red:</label>
+			<input class="redSlider" type="range" min="0" max="1" value="0.3" step="0.01">
+		</div>
+		<div class="mui-input-row mui-input-range">
+			<label>green:</label>
+			<input class="greenSlider" type="range" min="0" max="1" value="0.3" step="0.01">
+		</div>
+		<div class="mui-input-row mui-input-range">
+			<label>blue:</label>
+			<input class="blueSlider" type="range" min="0" max="1" value="0.3" step="0.01">
+		</div>
+		</div>
+		
+		
+	</body>
+	<script type="text/javascript">
+		var isEffect = false;
+		//		所有图片效果都要用到的变量
+		var imageData = null;
+		var imagePxData = null;
+		var allPx = null;
+		//		初始化三个image数据的全局变量的方法
+		function initImageData() {
+			imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+			imagePxData = imageData.data;
+			allPx = canvas.width * canvas.height;
+		}
+		//准备画布
+		var canvas = document.getElementById("canvas1");
+		var context = canvas.getContext("2d");
+		var Cwidth = 320;
+		var Cheight = 200;
+		//		照片灰度系数
+		var grayR = 0.4;
+		var grayG = 0.5;
+		var grayB = 0.1;
+		//		照片黑度系数
+		var blackR = 0.2;
+		var blackG = 0.5;
+		var blackB = 0.6;
+		var photoImageUrl = null;
+		//		图片对象
+		canvas.width = Cwidth;
+		canvas.height = Cheight;
+		var myImage = new Image();
+		document.getElementById("btn").addEventListener("tap", function() {
+			// 获取到系统相机
+			var camera = plus.camera.getCamera();
+			var path = null;
+			// 获取相册里面的图片路径
+			camera.captureImage(function(path) {
+				//路径的转换
+				plus.io.resolveLocalFileSystemURL(path, function(entry) {
+					// 转换成本地路径
+					var localUrl = entry.toLocalURL();
+					//开始根据地址画图片
+					isEffect = false;
+					photoImageUrl = localUrl;
+					drawMyImage(localUrl);
+				}, function(error) {
+					alert("图片选择失败");
+				});
+			});
+		});
+		//绘图的方法
+		function drawMyImage(imageUrl) {
+			myImage.src = imageUrl;
+			myImage.onload = function() {
+				//				清空画布
+				context.clearRect(0, 0, canvas.width, canvas.height);
+				context.drawImage(myImage, 0, 0, canvas.width, canvas.height);
+			}
+		} //绘图方法结束
+		//渲染按钮的点击事件
+//		document.getElementById("effect").addEventListener("tap", function() {
+//			changeToGray();
+//		}); //渲染按钮点击事件结束
+		function changeToGray() {
+			initImageData();
+			for (var i = 0; i < allPx; i++) {
+				var red = imagePxData[4 * i + 0];
+				var green = imagePxData[4 * i + 1];
+				var blue = imagePxData[4 * i + 2];
+				var gray = red * grayR + green * grayG + blue * grayB;
+				imagePxData[4 * i + 0] = gray;
+				imagePxData[4 * i + 1] = gray;
+				imagePxData[4 * i + 2] = gray;
+			} //for循环结束
+			context.putImageData(imageData, 0, 0, 0, 0, canvas.width, canvas.height);
+		}
+		//		黑色按钮的点击事件
+//		document.getElementById("black").addEventListener("tap", function() {
+//			changeToBlack();
+//		}); //黑色按钮点击事件结束
+		function changeToBlack() {
+			initImageData();
+			for (var i = 0; i < allPx; i++) {
+				var red = imagePxData[4 * i + 0];
+				var green = imagePxData[4 * i + 1];
+				var blue = imagePxData[4 * i + 2];
+				var gray = red * blackR + green * blackG + blue * blackB;
+				if (gray < 100) {
+					gray = 0;
+				} else {
+					gray = 255;
+				}
+				imagePxData[4 * i + 0] = gray;
+				imagePxData[4 * i + 1] = gray;
+				imagePxData[4 * i + 2] = gray;
+			}
+			context.putImageData(imageData, 0, 0, 0, 0, canvas.width, canvas.height);
+		}
+		//reverse按钮点击事件
+//		document.getElementById("reverse").addEventListener("tap", function() {
+//			reverse();
+//		}); //reverse按钮点击事件结束
+		function reverse() {
+			initImageData();
+			for (var i = 0; i < allPx; i++) {
+				imagePxData[4 * i + 0] = 255 - imagePxData[4 * i + 0];
+				imagePxData[4 * i + 1] = 255 - imagePxData[4 * i + 1];
+				imagePxData[4 * i + 2] = 255 - imagePxData[4 * i + 2];
+			}
+			context.putImageData(imageData, 0, 0, 0, 0, canvas.width, canvas.height);
+		}
+		//blur按钮点击事件
+		document.getElementById("blur").addEventListener("tap", function() {}); //blur按钮点击事件结束
+		//		red滑块的滑动事件
+		gray.getElementsByClassName("redSlider")[0].addEventListener("touchmove", function() {
+			grayR = this.value;
+			myImage.src = photoImageUrl;
+			//				清空画布
+			context.clearRect(0, 0, canvas.width, canvas.height);
+			context.drawImage(myImage, 0, 0, canvas.width, canvas.height);
+			changeToGray();
+		});
+		//		green滑块的滑动事件
+		gray.getElementsByClassName("greenSlider")[0].addEventListener("touchmove", function() {
+			grayG = this.value;
+			myImage.src = photoImageUrl;
+			//				清空画布
+			context.clearRect(0, 0, canvas.width, canvas.height);
+			context.drawImage(myImage, 0, 0, canvas.width, canvas.height);
+			changeToGray();
+		});
+		//		blue滑块的滑动事件
+		gray.getElementsByClassName("blueSlider")[0].addEventListener("touchmove", function() {
+			grayB = this.value;
+			myImage.src = photoImageUrl;
+			//				清空画布
+			context.clearRect(0, 0, canvas.width, canvas.height);
+			context.drawImage(myImage, 0, 0, canvas.width, canvas.height);
+			changeToGray();
+		});
+		
+		//		red滑块的滑动事件
+		Black.getElementsByClassName("redSlider")[0].addEventListener("touchmove", function() {
+			blackR = this.value;
+			myImage.src = photoImageUrl;
+			//				清空画布
+			context.clearRect(0, 0, canvas.width, canvas.height);
+			context.drawImage(myImage, 0, 0, canvas.width, canvas.height);
+			changeToBlack();
+		});
+		//		green滑块的滑动事件
+		Black.getElementsByClassName("greenSlider")[0].addEventListener("touchmove", function() {
+			blackG = this.value;
+			myImage.src = photoImageUrl;
+			//				清空画布
+			context.clearRect(0, 0, canvas.width, canvas.height);
+			context.drawImage(myImage, 0, 0, canvas.width, canvas.height);
+			changeToBlack();
+		});
+		//		blue滑块的滑动事件
+		Black.getElementsByClassName("blueSlider")[0].addEventListener("touchmove", function() {
+			blackB = this.value;
+			myImage.src = photoImageUrl;
+			//				清空画布
+			context.clearRect(0, 0, canvas.width, canvas.height);
+			context.drawImage(myImage, 0, 0, canvas.width, canvas.height);
+			changeToBlack();
+		});
+	</script>
+
+</html>

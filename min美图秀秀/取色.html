@@ -1,0 +1,59 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<meta charset="utf-8">
+		<title></title>
+		<style type="text/css">
+			.info {
+				text-align: center;
+				font-size: 50px;
+				line-height: 50px;
+			}
+		</style>
+	</head>
+
+	<body>
+		<center>
+			<canvas id="canvas" width="400px" height="400px"></canvas>
+			<hr />
+			<div class="info" id="currentColor"></div>
+		</center>
+	</body>
+	<script src="http://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>
+	<script type="text/javascript">
+		function draw(img) {
+			var _self = this;
+			var canvas = document.getElementById("canvas");
+			var context = canvas.getContext("2d");
+			context.shadowBlur = 20;
+			context.shadowColor = "#DDDDDD";
+			context.drawImage(img, 0, 0);
+			var imageData = context.getImageData(0, 0, 10, 10);
+			var pixel = imageData.data;
+			for (var i = 0, length = pixel.length; i < length; i += 4) {
+				console.log(i + ":rgb(" + pixel[i] + "," + pixel[i + 1] + "," + pixel[i + 2] + ")");
+			}
+			canvas = $("#canvas");
+			canvas.click(function(e) {
+				var canvasOffset = canvas.offset();
+				var canvasX = Math.floor(e.pageX - canvasOffset.left);
+				var canvasY = Math.floor(e.pageY - canvasOffset.top);
+				// 获取该点像素的数据
+				var imageData = context.getImageData(canvasX, canvasY, 1, 1);
+				// 获取该点像素数据
+				var pixel = imageData.data;
+				var pixelColor = "rgba(" + pixel[0] + "," + pixel[1] + "," + pixel[2] + "," + pixel[3] + ")";
+				$("body").css("backgroundColor", pixelColor);
+				$("#currentColor").html("当前背景颜色为:" + pixelColor);
+			});
+		}
+		$(document).ready(function() {
+			var img = new Image();
+			img.src = "111.jpg";
+			$(img).load(function() {
+				draw(img);
+			});
+		});
+	</script>
+
+</html>
